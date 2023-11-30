@@ -1,11 +1,4 @@
-# redact
+# vercompare
 
-`redact` is used to automagically redact strings
+`vercompare` is used to compare weird version strings
 
-### Usage
-```
->>> from redact import redact_string
->>> s = "this is a string"
->>> redact_string(s)
-'t**************g'
-```
