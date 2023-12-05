@@ -93,7 +93,7 @@ def _normalize(raw) -> Version:
     return ver
 
 
-def _compare_states(ver, fix, fix_is_vuln=False):
+def _compare_states(ver, fix, no_fix_ver=False):
     nver = _normalize(ver)
     nfix = _normalize(fix)
     if nver.len() != nfix.len():
@@ -102,7 +102,7 @@ def _compare_states(ver, fix, fix_is_vuln=False):
         else:
             nver.extend(nfix.len() - nver.len())
 
-    if not fix_is_vuln and nfix.version == nver.version:
+    if not no_fix_ver and nfix.version == nver.version:
         log.debug(f"version and fix are equal: {nver}, {nfix}")
         return True
 
@@ -118,7 +118,7 @@ def _compare_states(ver, fix, fix_is_vuln=False):
             break
         i += 1
 
-    if fix_is_vuln and nfix.version == nver.version:
+    if no_fix_ver and nfix.version == nver.version:
         log.debug(f"version equals fix, and fix is vuln: {nver}, {nfix}")
         fixed = False
 
@@ -129,8 +129,12 @@ def is_fixed(ver, fix):
     return _compare_states(ver, fix)
 
 
-def vuln_no_fix(ver, max_vuln):
-    return _compare_states(ver, max_vuln, fix_is_vuln=True)
+def vuln_no_fix(ver, max_vuln_unfixed):
+    '''
+    use this function when the maximum published version is still vulnerable and
+    the fixed version number is unknown.
+    '''
+    return _compare_states(ver, max_vuln_unfixed, no_fix_ver=True)
 
 
 if __name__ == "__main__":
