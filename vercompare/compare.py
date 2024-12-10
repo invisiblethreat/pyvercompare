@@ -4,12 +4,9 @@ import logging
 import re
 from typing import List
 
-import coloredlogs
-
-coloredlogs.install(level="DEBUG")
 logging.basicConfig()
 log = logging.getLogger("vercompare")
-log.setLevel(level=logging.DEBUG)
+log.setLevel(level=logging.INFO)
 
 remap = {"rc": "-1", "beta": "-2", "alpha": "-3"}
 
@@ -40,8 +37,7 @@ class Version:
         i = 0
         while i < self.len():
             if self.version[i] in remap:
-                log.debug(
-                    f"remapping {self.version[i]} to {remap[self.version[i]]}")
+                log.debug(f"remapping {self.version[i]} to {remap[self.version[i]]}")
                 self.version[i] = remap[self.version[i]]
 
             if len(self.version[i]) == 1 and self.version[i].isalpha():
@@ -55,7 +51,7 @@ class ConversionException(Exception):
         super().__init__(f"{message}")
 
 
-def _convert_character(char):
+def _convert_character(char: str) -> str:
     if len(char) != 1:
         raise ConversionException(f"got {len(char)} characters but needed 1")
 
@@ -76,7 +72,7 @@ def _convert_character(char):
     return str(converted)
 
 
-def _normalize(raw) -> Version:
+def _normalize(raw: str) -> Version:
     comparable = None
     norm = raw.lower().replace("rc", "rc-")
     norm = norm.lower().replace("-", ".")
@@ -93,8 +89,8 @@ def _normalize(raw) -> Version:
     return ver
 
 
-def _compare_states(ver, fix, no_fix_ver=False):
-    nver = _normalize(ver)
+def _compare_states(version: str, fix: str, no_fix_ver: bool = False) -> bool:
+    nver = _normalize(version)
     nfix = _normalize(fix)
     if nver.len() != nfix.len():
         if nver.len() > nfix.len():
@@ -110,8 +106,7 @@ def _compare_states(ver, fix, no_fix_ver=False):
 
     i = 0
     while i < nfix.len():
-        log.debug(
-            f"Comparing version: {nver.version[i]} to fix: {nfix.version[i]}")
+        log.debug(f"Comparing version: {nver.version[i]} to fix: {nfix.version[i]}")
         if nver.version[i] < nfix.version[i]:
             log.debug(f"version less than fix: {nver}, {nfix}")
             fixed = False
@@ -125,16 +120,20 @@ def _compare_states(ver, fix, no_fix_ver=False):
     return fixed
 
 
-def is_fixed(ver, fix):
-    return _compare_states(ver, fix)
+def is_fixed(version: str, fix: str) -> bool:
+    return _compare_states(version, fix)
 
 
-def vuln_no_fix(ver, max_vuln_unfixed):
-    '''
+def is_vuln(version: str, fix: str) -> bool:
+    return not _compare_states(version, fix)
+
+
+def vuln_no_fix(version: str, max_vuln_unfixed: str) -> bool:
+    """
     use this function when the maximum published version is still vulnerable and
     the fixed version number is unknown.
-    '''
-    return _compare_states(ver, max_vuln_unfixed, no_fix_ver=True)
+    """
+    return _compare_states(version, max_vuln_unfixed, no_fix_ver=True)
 
 
 if __name__ == "__main__":
